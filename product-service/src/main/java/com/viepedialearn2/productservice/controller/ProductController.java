@@ -3,6 +3,7 @@ package com.viepedialearn2.productservice.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.viepedialearn2.productservice.repository.ProductRepository;
 import com.viepedialearn2.productservice.model.Product;
+import com.viepedialearn2.productservice.dto.ProductQuantityRequest;
 
 @RestController
 @RequestMapping("/api/product")
@@ -57,5 +59,24 @@ public class ProductController {
             // Product with the given ID doesn't exist
             return false;
         }
+    }
+    
+    @PostMapping("/canBuy")
+    public ResponseEntity<Boolean> canBuyProducts(@RequestBody List<ProductQuantityRequest> productQuantities) {
+        boolean canBuy = true;
+
+        for (ProductQuantityRequest request : productQuantities) {
+            int productId = request.getProductId();
+            int requiredAmount = request.getRequiredAmount();
+            Product product = productRepository.findById(productId).orElse(null);
+
+            if (product == null || product.getStock() < requiredAmount) {
+                canBuy = false;
+                break; // Exit early if any product is not available
+            }
+        }
+
+        // Return the result as a response
+        return ResponseEntity.ok(canBuy);
     }
 }
