@@ -6,6 +6,9 @@ import com.viepedialearn2.orderservice.dto.CreateOrderRequest;
 import com.viepedialearn2.orderservice.model.Order;
 import com.viepedialearn2.orderservice.model.OrderItem;
 import com.viepedialearn2.orderservice.repository.*;
+
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,6 +35,18 @@ public class OrderController {
         this.orderRepository = orderRepository;
 		this.webClientBuilder = webClientBuilder;
     }
+    
+    @GetMapping("/")
+    @CircuitBreaker(name = "defaultcb", fallbackMethod = "turuFallback")
+    public String turu() throws Exception {
+        // Simulate a failure condition by throwing a custom exception
+        throw new Exception("Simulated failure");
+    }
+
+    public String turuFallback(Throwable throwable) {
+        return "turu fallback";
+    }
+
 
     @GetMapping("/{id}/")
     public ResponseEntity<?> getOrderById(@PathVariable("id") int orderId) {
